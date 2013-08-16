@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script type="text/javascript">/*<![CDATA[ /**/
+function brainfuck() {
+	var pgm = $('#pgm').val();
+	var user_input = $('#user_input').val();
+
+	var Program = new Array();
+	for (var i = 0; i < pgm.length; i++) {
+		Program[i] = pgm.charCodeAt(i);
+	}
+
+	var UserInput = new Array();
+	var ip = 0;
+	for (var i = 0; i < user_input.length; i++) {
+		UserInput[i] = user_input.charCodeAt(i);
+	}
+
+	var output = $('#output');
+
+
+	alert(execute(Program));
+}
+
+function execute(Program) {
+	var UserOutput = "";
+
+	var pc = 0;
+	var dp = 0;
+	var data = new Array();
+	var stack = new Array();
+	var sp = 0;
+
+	while(pc < Program.length) {
+		var instruction = Program[pc++];
+		switch(String.fromCharCode(instruction)) {
+			case '>':
+				dp++; break; // if (dp >= Program.length) dp = 0;
+			case '<':
+				dp--; break; // if (dp < 0) dp = Program.length - 1;
+			case '+':
+				if (dp >= data.length) {
+					data[dp] = 0;
+				}
+				data[dp]++; break;
+			case '-':
+				if (dp >= data.length) {
+					data[dp] = 0;
+				}
+				data[dp]--; break;
+			case '.':
+				UserOutput += String.fromCharCode(data[dp]); break;
+			case ',':
+				data[dp] = UserInput[ip]; break; // what if there is none?  Oh well.
+			case '[':
+				stack[sp++] = pc;
+				if (data[dp] == 0) pc = seek(Program, pc);
+				break;
+			case ']':
+				sp--; // what if this goes < 0?
+				if (data[dp] != 0) pc = stack[sp] - 1; // the [ itself
+				break;
+			default:
+				// CPU slowly melts (decrement pc?)
+				break;
+		}
+	}
+	
+	return UserOutput;
+}
+
+function seek(Program, pc) {
+	var depth = 0;
+	while(true) {
+		var instruction = Program[pc++];
+		switch(String.fromCharCode(instruction)) {
+			case '[': depth++; break;
+			case ']':
+				if (depth == 0) {
+					return pc - 1; // the ] itself
+				}
+				depth--;
+				break;
+			default:
+				break;
+		}
+	}
+}
+//		]]>
+		</script>
+	</head>
+	<body>
+	<label for="pgm">Enter program text: </label><input type="text" id="pgm" size="128"
+	value="++++++++++[&gt;+++++++&gt;++++++++++&gt;+++&gt;+&lt;&lt;&lt;&lt;-]&gt;++.&gt;+.+++++++..+++.&gt;++.&lt;&lt;+++++++++++++++.&gt;.+++.------.--------.&gt;+.&gt;."></input>
+	</input><br/>
+	<label for="user_input">Enter any user input: </label><input type="text" id="user_input" size="128"></input><br/>
+	<input type="button" onclick="javascript:brainfuck();" value="Run"></input>
+	<hr/>
+	<p id="output"></p>
+	</body>
+</html>
