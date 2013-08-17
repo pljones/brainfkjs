@@ -4,7 +4,10 @@
 		<meta charset="UTF-8">
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 		<script type="text/javascript">/*<![CDATA[ /**/
+
+
 function brainfuck() {
+
 	var pgm = $('#pgm').val();
 	var user_input = $('#user_input').val();
 
@@ -14,63 +17,65 @@ function brainfuck() {
 	}
 
 	var UserInput = new Array();
-	var ip = 0;
 	for (var i = 0; i < user_input.length; i++) {
 		UserInput[i] = user_input.charCodeAt(i);
 	}
 
-	var output = $('#output');
+	$('#output').append(execute(Program, UserInput) + "<hr/>");
 
-
-	alert(execute(Program));
 }
 
-function execute(Program) {
+
+function execute(Program, UserInput) {
+
 	var UserOutput = "";
 
-	var pc = 0;
-	var dp = 0;
+	var pc = 0; // Program counter
+	var ip = 0; // UserInput counter
+
 	var data = new Array();
+	var dp = 0;
+	data[dp] = 0;
+
 	var stack = new Array();
 	var sp = 0;
 
+	// Personally, I'd prefer a STOP instruction rather than this,
+	// and wrap at the end instead of stopping...
 	while(pc < Program.length) {
-		var instruction = Program[pc++];
-		switch(String.fromCharCode(instruction)) {
+
+		switch(String.fromCharCode(Program[pc++])) {
 			case '>':
-				dp++; break; // if (dp >= Program.length) dp = 0;
+				dp++; if (dp >= data.length) data[dp] = 0; break; // Unlimited growth
 			case '<':
-				dp--; break; // if (dp < 0) dp = Program.length - 1;
+				if (dp == 0) dp = data.length; dp--; break; // Wrap around...
 			case '+':
-				if (dp >= data.length) {
-					data[dp] = 0;
-				}
 				data[dp]++; break;
 			case '-':
-				if (dp >= data.length) {
-					data[dp] = 0;
-				}
 				data[dp]--; break;
 			case '.':
 				UserOutput += String.fromCharCode(data[dp]); break;
 			case ',':
-				data[dp] = UserInput[ip]; break; // what if there is none?  Oh well.
+				data[dp] = ip < UserInput.length ? UserInput[ip++] : 0; break; // Don't want "undefined"
 			case '[':
 				stack[sp++] = pc;
 				if (data[dp] == 0) pc = seek(Program, pc);
 				break;
 			case ']':
-				sp--; // what if this goes < 0?
+				if (sp > 0) sp--; // what if this goes < 0?  For now, just prevent it...
 				if (data[dp] != 0) pc = stack[sp] - 1; // the [ itself
 				break;
 			default:
-				// CPU slowly melts (decrement pc?)
+				// Silently ignore
 				break;
 		}
+
 	}
 	
 	return UserOutput;
+
 }
+
 
 function seek(Program, pc) {
 	var depth = 0;
@@ -89,6 +94,7 @@ function seek(Program, pc) {
 		}
 	}
 }
+
 //		]]>
 		</script>
 	</head>
